@@ -1,0 +1,33 @@
+[package]
+name = "asakurawiki_engine"
+version = "0.1.1"
+edition = "2021"
+license = "MIT"
+
+[lib]
+# Tauri(Rust)からは「rlib」、WASM(JS)からは「cdylib」としてインポートできるようにする
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+wasm-bindgen = { version = "0.2.92", optional = true }
+serde = { version = "1.0", features = ["derive"] }
+serde-wasm-bindgen = "0.6"
+serde_json = "1.0"
+chrono = "0.4"
+regex = "1.10"
+wasm-bindgen-futures = "0.4.76"
+
+[features]
+default = []
+wasm = ["dep:wasm-bindgen"]
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+    "Window",
+    "Request",
+    "RequestInit",
+    "RequestMode",
+    "Headers",
+    "Response",
+]

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Wiki Parser Test</title>
+    <link rel="stylesheet" href="https://sakitibi.github.io/static.asakurawiki.com/css/index.globals.css">
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+</head>
+<body class="wiki-font default">
+    <div id="wiki-output">読み込み中</div>
+    <script type="module">
+        import init, { parseWiki, parseWikiBinary } from './pkg/asakurawiki_engine.js';
+        import {
+            applyMarqueeResponsive,
+            setupAccordions,
+            setupIncludePages,
+            setupPageLists
+        } from './js/library.js';
+        import {
+            setupCommentForms,
+            setupRealTimeComments
+        } from './js/comment.js';
+
+        window.parseWiki = parseWiki;
+        
+        async function run() {
+            await init();
+
+            const input = new TextEncoder().encode("\x02タイトル\x02\n\x03タイトル\x04https://github.com\x03")/*[
+                "#accordion(サンプル,*,close)\x7b\x7b\x7b",
+                "#marquee(これはデフォルトの15秒無限ループマーキーです)",
+                "#calendar2(2026, 07)",
+                "''a''&br;c",
+                "\x7d\x7d\x7d"
+            ].join("\n");*/
+
+            const container = document.getElementById('wiki-output');
+            container.innerHTML = parseWikiBinary(input, "asakura-meeting", "FrontPage").trim();
+
+            applyMarqueeResponsive('wiki-output');
+            
+            setupCommentForms('wiki-output');
+            setupRealTimeComments('wiki-output');
+            setupAccordions('wiki-output');
+            setupPageLists('wiki-output');
+            
+            setupIncludePages('wiki-output', { parseWiki }, "asakura-meeting", {
+                setupCommentForms,
+                setupRealTimeComments
+            });
+        }
+        run();
+    </script>
+</body>
+</html>
