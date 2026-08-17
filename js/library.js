@@ -18,7 +18,7 @@ export function applyMarqueeResponsive(containerId = 'wiki-output') {
 
 /**
  * HTMLとしてレンダリングされた #accordion のインタラクティブ動作をセットアップする関数
- * @param {string} containerId - 対象のコンテナID
+ * @param {string|HTMLElement} containerOrId - 対象のコンテナIDまたはDOM要素
  */
 export function setupAccordions(containerOrId = 'wiki-output') {
     const container = typeof containerOrId === 'string' 
@@ -34,17 +34,17 @@ export function setupAccordions(containerOrId = 'wiki-output') {
             const content = header.nextElementSibling;
             if (!content || !content.classList.contains('accordion-content')) return;
 
-            const isHidden = window.getComputedStyle(content).display === 'none';
-            content.style.display = isHidden ? 'block' : 'none';
+            // クラスの着脱で開閉状態を管理
+            const isOpen = content.classList.toggle('is-open');
 
-            // アイコンのSVGパスを切り替える (開いている時: マイナス記号系, 閉じている時: プラス記号系)
+            // アイコンのSVGパスを切り替える
             const iconPath = header.querySelector('svg path');
             if (iconPath) {
-                if (isHidden) {
-                    // 開いた時のアイコンパス (開く処理)
+                if (isOpen) {
+                    // 開いた時のアイコンパス
                     iconPath.setAttribute('d', 'M384 32H64C28.7 32 0 60.7 0 96v320c0 35.3 28.7 64 64 64h320c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64zM320 272H128c-13.3 0-24-10.7-24-24s10.7-24 24-24h192c13.3 0 24 10.7 24 24s-10.7 24-24 24z');
                 } else {
-                    // 閉じている時のアイコンパス (閉じる処理)
+                    // 閉じている時のアイコンパス
                     iconPath.setAttribute('d', 'M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zM200 344l0-64-64 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l64 0 0-64c0-13.3 10.7-24 24-24s24 10.7 24 24l0 64 64 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-64 0 0 64c0 13.3-10.7 24-24 24s-24-10.7-24-24z');
                 }
             }
