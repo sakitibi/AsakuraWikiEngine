@@ -1,6 +1,5 @@
-.DS_Store
 .vscode
+.DS_Store
 ._*
-src/env.rs
-Cargo.lock
-target
+src/compiler/obj/*
+src/compiler/bin/*
