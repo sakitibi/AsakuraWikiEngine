@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using WikiCompiler.Parser;
 
 namespace WikiCompiler
@@ -24,8 +22,8 @@ namespace WikiCompiler
             string[] lines = File.ReadAllLines(inputPath);
             
             // 構文解析の実行
-            var parser = new WikiParser();
-            var astNodes = parser.Parse(lines);
+            WikiParser parser = new();
+            List<AST.IAstNode> astNodes = parser.Parse(lines);
 
             Console.WriteLine($"Parsed {astNodes.Count} nodes successfully.");
         }

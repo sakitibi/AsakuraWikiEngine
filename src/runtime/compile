@@ -1,0 +1,32 @@
+#!/bin/bash
+set -e
+
+# --- Emscripten環境設定 ---
+EMSDK_PATH="/Applications/AsakuraWikiEngine/src/runtime/emsdk"
+if [ -f "$EMSDK_PATH/emsdk_env.sh" ]; then
+    source "$EMSDK_PATH/emsdk_env.sh" > /dev/null 2>&1
+else
+    echo "エラー: emsdk_env.sh が見つかりません。"
+    exit 1
+fi
+
+mkdir -p build
+cd build
+
+echo "Configuring with Emscripten..."
+emcmake cmake ..
+
+echo "Building WebAssembly binary..."
+make
+
+if [ $? -eq 0 ]; then
+    cp ./wiki_runtime.wasm /Applications/AsakuraWikiEngine/web/public/wiki_runtime.wasm
+    cp ./wiki_runtime.js /Applications/AsakuraWikiEngine/web/public/wiki_runtime.js
+    echo "---------------------------------------"
+    echo "ビルド成功: public/wiki_runtime.js"
+    echo "ビルド成功: public/wiki_runtime.wasm"
+    echo "---------------------------------------"
+else
+    echo "ビルドに失敗しました。"
+    exit 1
+fi

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using WikiCompiler.AST;
 
 namespace WikiCompiler.Parser
@@ -9,9 +6,9 @@ namespace WikiCompiler.Parser
     {
         public List<IAstNode> Parse(string[] lines)
         {
-            var nodes = new List<IAstNode>();
+            List<IAstNode> nodes = [];
 
-            foreach (var line in lines)
+            foreach (string line in lines)
             {
                 if (string.IsNullOrWhiteSpace(line)) continue;
 

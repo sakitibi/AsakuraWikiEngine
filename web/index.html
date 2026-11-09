@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wasm Wiki Viewer</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+        }
+        .file-select {
+            background: #f4f4f9;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-bottom: 30px;
+        }
+            #preview-container {
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Wasm Wiki Viewer</h1>
+    
+    <div class="file-select">
+        <label for="fileInput"><b>Wikiバイトコード (.wbc) を選択:</b></label><br><br>
+        <input type="file" id="fileInput" accept=".wbc">
+    </div>
+
+    <h2>プレビュー結果</h2>
+    <div id="preview-container">
+        <p><i>ファイルを読み込むとここに結果が表示されます。</i></p>
+    </div>
+
+    <script src="public/wiki_runtime.js"></script>
+    <!-- アプリケーションロジック -->
+    <script src="app.js"></script>
+</body>
+</html>

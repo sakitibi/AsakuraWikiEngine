@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.10)
+project(WikiRuntime)
+
+set(CMAKE_CXX_STANDARD 17)
+
+# ソースファイル
+add_executable(
+    wiki_runtime src/main.cpp
+)
+
+# Emscripten向けのコンパイル・リンクオプション
+target_link_options(wiki_runtime PRIVATE
+    "SHELL:-s WASM=1"
+    "SHELL:-s EXPORTED_FUNCTIONS=['_render_wiki','_malloc','_free']"
+    "SHELL:-s EXPORTED_RUNTIME_METHODS=['ccall','UTF8ToString']"
+    "SHELL:-s ALLOW_MEMORY_GROWTH=1"
+    "-O3"
+)
+
+set_target_properties(wiki_runtime PROPERTIES
+    SUFFIX ".js"
+)
