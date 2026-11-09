@@ -13,8 +13,28 @@ public:
             OpCode op = static_cast<OpCode>(data[offset++]);
             
             switch (op) {
+                case OpCode::Text: {
+                    std::string text = read_string(data, offset);
+                    html << "<p>" << text << "</p>\n";
+                    break;
+                }
+                case OpCode::CenterAlign: {
+                    std::string text = read_string(data, offset);
+                    html << "<div style=\"text-align: center;\">" << text << "</div>\n";
+                    break;
+                }
+                case OpCode::RightAlign: {
+                    std::string text = read_string(data, offset);
+                    html << "<div style=\"text-align: right;\">" << text << "</div>\n";
+                    break;
+                }
+                case OpCode::LeftAlign: {
+                    std::string text = read_string(data, offset);
+                    html << "<div style=\"text-align: left;\">" << text << "</div>\n";
+                    break;
+                }
                 default:
-                    // 未知のオペコードの場合はスキップまたはエラー処理
+                    // 未知のオペコードの場合はスキップ
                     break;
             }
         }

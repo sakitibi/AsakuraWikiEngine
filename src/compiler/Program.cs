@@ -1,3 +1,4 @@
+using WikiCompiler.CodeGen;
 using WikiCompiler.Parser;
 
 namespace WikiCompiler
@@ -8,11 +9,13 @@ namespace WikiCompiler
         {
             if (args.Length < 1)
             {
-                Console.WriteLine("Usage: wikic <input.wiki>");
+                Console.WriteLine("Usage: wikic <input.askr> [output.askb]");
                 return;
             }
 
             string inputPath = args[0];
+            string outputPath = args.Length > 1 ? args[1] : Path.ChangeExtension(inputPath, ".askb");
+
             if (!File.Exists(inputPath))
             {
                 Console.WriteLine($"Error: File not found -> {inputPath}");
@@ -21,11 +24,14 @@ namespace WikiCompiler
 
             string[] lines = File.ReadAllLines(inputPath);
             
-            // 構文解析の実行
             WikiParser parser = new();
             List<AST.IAstNode> astNodes = parser.Parse(lines);
 
             Console.WriteLine($"Parsed {astNodes.Count} nodes successfully.");
+
+            BytecodeEmitter.Emit(astNodes, outputPath);
+
+            Console.WriteLine($"Successfully emitted compiled binary to: {outputPath}");
         }
     }
 }
