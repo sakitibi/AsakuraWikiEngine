@@ -5,3 +5,5 @@ src/compiler/obj/*
 src/compiler/bin/*
 src/runtime/build/*
 src/runtime/emsdk/*
+**/*.askb
+**/*.askr
