@@ -45,6 +45,40 @@ std::string WikiVM::render(const uint8_t* data, size_t size) {
                 html << "<div style=\"text-align: left;\">" << text << "</div>\n";
                 break;
             }
+            case OpCode::ColorText: {
+                std::string color = read_string(data, offset);
+                std::string bgColor = read_string(data, offset);
+                
+                if (offset < size && static_cast<OpCode>(data[offset]) == OpCode::TextBegin) {
+                    offset++;
+                }
+                
+                std::string text = read_string(data, offset);
+                expect_end(data, size, offset);
+                
+                html << "<span style=\"";
+                if (!color.empty()) {
+                    html << "color: " << color << "; ";
+                }
+                if (!bgColor.empty()) {
+                    html << "background-color: " << bgColor << "; ";
+                }
+                html << "\">" << text << "</span>\n";
+                break;
+            }
+            case OpCode::SizeText: {
+                std::string sizeVal = read_string(data, offset);
+                
+                if (offset < size && static_cast<OpCode>(data[offset]) == OpCode::TextBegin) {
+                    offset++;
+                }
+                
+                std::string text = read_string(data, offset);
+                expect_end(data, size, offset);
+                
+                html << "<span style=\"font-size: " << sizeVal << ";\">" << text << "</span>\n";
+                break;
+            }
             default:
                 break;
         }

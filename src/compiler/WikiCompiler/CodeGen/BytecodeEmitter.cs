@@ -18,6 +18,23 @@ namespace WikiCompiler.CodeGen
                         WriteLengthAndString(writer, textNode.Text);
                         writer.Write((byte)0x03);
                         break;
+                    
+                    case ColorPluginNode colorNode:
+                        writer.Write((byte)0x07);
+                        WriteLengthAndString(writer, colorNode.Color);
+                        WriteLengthAndString(writer, colorNode.BackgroundColor);
+                        writer.Write((byte)0x02);
+                        WriteLengthAndString(writer, colorNode.Text);
+                        writer.Write((byte)0x03);
+                        break;
+
+                    case SizePluginNode sizeNode:
+                        writer.Write((byte)0x08);
+                        WriteLengthAndString(writer, sizeNode.Size);
+                        writer.Write((byte)0x02);
+                        WriteLengthAndString(writer, sizeNode.Text);
+                        writer.Write((byte)0x03);
+                        break;
 
                     case AlignNode alignNode:
                         writer.Write(GetOpCodeForAlign(alignNode.Align));
@@ -31,6 +48,7 @@ namespace WikiCompiler.CodeGen
 
         private static void WriteLengthAndString(BinaryWriter writer, string text)
         {
+            text ??= "";
             byte[] utf8Bytes = Encoding.UTF8.GetBytes(text);
             
             if (utf8Bytes.Length > 255)
