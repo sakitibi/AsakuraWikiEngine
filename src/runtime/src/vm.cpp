@@ -63,7 +63,7 @@ std::string WikiVM::render_node(const uint8_t* data, size_t size, size_t& offset
             
             std::string innerHtml = render_node(data, size, offset);
 
-            ss << "<span style=\"font-size: " << sizeVal << ";\">" << innerHtml << "</span>";
+            ss << "<span style=\"font-size: " << sizeVal << "px;\">" << innerHtml << "</span>";
             return ss.str();
         }
         default:
