@@ -1,12 +1,9 @@
-using System.Text.RegularExpressions;
 using WikiCompiler.AST;
 
 namespace WikiCompiler.Parser
 {
     public class WikiParser
     {
-        private static readonly Regex PluginRegex = new(@"&([a-zA-Z]+)\(([^)]+)\)\{(.+?)\};");
-
         public List<IAstNode> Parse(string[] lines)
         {
             List<IAstNode> nodes = [];
@@ -16,79 +13,116 @@ namespace WikiCompiler.Parser
                 if (string.IsNullOrWhiteSpace(line)) continue;
                 string trimmed = line.Trim();
 
+                AlignType? alignType = null;
                 if (trimmed.StartsWith("CENTER:", StringComparison.OrdinalIgnoreCase))
                 {
-                    string textContent = trimmed["CENTER:".Length..].Trim();
-                    nodes.Add(new AlignNode
-                    {
-                        Align = AlignType.Center,
-                        Text = textContent
-                    });
-                    continue;
+                    alignType = AlignType.Center;
+                    trimmed = trimmed["CENTER:".Length..].Trim();
                 }
                 else if (trimmed.StartsWith("RIGHT:", StringComparison.OrdinalIgnoreCase))
                 {
-                    string textContent = trimmed["RIGHT:".Length..].Trim();
-                    nodes.Add(new AlignNode
-                    {
-                        Align = AlignType.Right,
-                        Text = textContent
-                    });
-                    continue;
+                    alignType = AlignType.Right;
+                    trimmed = trimmed["RIGHT:".Length..].Trim();
                 }
                 else if (trimmed.StartsWith("LEFT:", StringComparison.OrdinalIgnoreCase))
                 {
-                    string textContent = trimmed["LEFT:".Length..].Trim();
+                    alignType = AlignType.Left;
+                    trimmed = trimmed["LEFT:".Length..].Trim();
+                }
+
+                IAstNode innerNode = ParseInlineRecursive(trimmed);
+
+                if (alignType.HasValue)
+                {
                     nodes.Add(new AlignNode
                     {
-                        Align = AlignType.Left,
-                        Text = textContent
+                        Align = alignType.Value,
+                        InnerNode = innerNode
                     });
-                    continue;
                 }
-
-                var match = PluginRegex.Match(trimmed);
-                if (match.Success)
+                else
                 {
-                    string pluginName = match.Groups[1].Value.ToLower();
-                    string argsPart = match.Groups[2].Value;
-                    string text = match.Groups[3].Value;
-
-                    if (pluginName == "color")
-                    {
-                        string color = argsPart;
-                        string bgColor = string.Empty;
-
-                        if (argsPart.Contains(','))
-                        {
-                            var parts = argsPart.Split([','], 2);
-                            color = parts[0].Trim();
-                            bgColor = parts[1].Trim();
-                        }
-
-                        nodes.Add(new ColorPluginNode
-                        {
-                            Color = color,
-                            BackgroundColor = bgColor,
-                            Text = text
-                        });
-                        continue;
-                    }
-                    else if (pluginName == "size")
-                    {
-                        nodes.Add(new SizePluginNode
-                        {
-                            Size = argsPart,
-                            Text = text
-                        });
-                        continue;
-                    }
+                    nodes.Add(innerNode);
                 }
-
-                nodes.Add(new TextNode { Text = trimmed });
             }
 
             return nodes;
+        }
+
+        /// <summary>
+        /// プラグインの多重入れ子を再帰的にパースする
+        /// </summary>
+        private static IAstNode ParseInlineRecursive(string input)
+        {
+            input = input.Trim();
+
+            if (input.StartsWith('&'))
+            {
+                int parenStart = input.IndexOf('(', 0);
+                if (parenStart != -1)
+                {
+                    string pluginName = input[1..parenStart].ToLower();
+                    if (pluginName == "color" || pluginName == "size")
+                    {
+                        int parenEnd = input.IndexOf(')', parenStart);
+                        if (parenEnd != -1 && parenEnd + 1 < input.Length && input[parenEnd + 1] == '{')
+                        {
+                            string argsPart = input[(parenStart + 1)..parenEnd];
+                            int contentStart = parenEnd + 2;
+                            int braceDepth = 1;
+                            int contentEnd = -1;
+
+                            for (int j = contentStart; j < input.Length; j++)
+                            {
+                                if (input[j] == '{') braceDepth++;
+                                else if (input[j] == '}')
+                                {
+                                    braceDepth--;
+                                    if (braceDepth == 0)
+                                    {
+                                        contentEnd = j;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (contentEnd != -1)
+                            {
+                                string innerContent = input[contentStart..contentEnd];
+                                IAstNode nestedNode = ParseInlineRecursive(innerContent);
+
+                                if (pluginName == "color")
+                                {
+                                    string color = argsPart;
+                                    string bgColor = string.Empty;
+                                    if (argsPart.Contains(','))
+                                    {
+                                        string[]? parts = argsPart.Split([','], 2);
+                                        color = parts[0].Trim();
+                                        bgColor = parts[1].Trim();
+                                    }
+                                    return new ColorPluginNode
+                                    {
+                                        Color = color,
+                                        BackgroundColor = bgColor,
+                                        InnerNode = nestedNode
+                                    };
+                                }
+                                else if (pluginName == "size")
+                                {
+                                    return new SizePluginNode
+                                    {
+                                        Size = argsPart,
+                                        InnerNode = nestedNode
+                                    };
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return new TextNode { Text = input };
         }
     }
 }

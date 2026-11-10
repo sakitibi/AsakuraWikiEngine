@@ -11,38 +11,37 @@ namespace WikiCompiler.CodeGen
 
             foreach (IAstNode node in nodes)
             {
-                switch (node)
-                {
-                    case TextNode textNode:
-                        writer.Write((byte)0x02);
-                        WriteLengthAndString(writer, textNode.Text);
-                        writer.Write((byte)0x03);
-                        break;
-                    
-                    case ColorPluginNode colorNode:
-                        writer.Write((byte)0x07);
-                        WriteLengthAndString(writer, colorNode.Color);
-                        WriteLengthAndString(writer, colorNode.BackgroundColor);
-                        writer.Write((byte)0x02);
-                        WriteLengthAndString(writer, colorNode.Text);
-                        writer.Write((byte)0x03);
-                        break;
+                EmitNode(writer, node);
+            }
+        }
 
-                    case SizePluginNode sizeNode:
-                        writer.Write((byte)0x08);
-                        WriteLengthAndString(writer, sizeNode.Size);
-                        writer.Write((byte)0x02);
-                        WriteLengthAndString(writer, sizeNode.Text);
-                        writer.Write((byte)0x03);
-                        break;
+        private static void EmitNode(BinaryWriter writer, IAstNode node)
+        {
+            switch (node)
+            {
+                case AlignNode alignNode:
+                    writer.Write(GetOpCodeForAlign(alignNode.Align));
+                    EmitNode(writer, alignNode.InnerNode);
+                    break;
 
-                    case AlignNode alignNode:
-                        writer.Write(GetOpCodeForAlign(alignNode.Align));
-                        writer.Write((byte)0x02);
-                        WriteLengthAndString(writer, alignNode.Text);
-                        writer.Write((byte)0x03);
-                        break;
-                }
+                case ColorPluginNode colorNode:
+                    writer.Write((byte)0x07);
+                    WriteLengthAndString(writer, colorNode.Color);
+                    WriteLengthAndString(writer, colorNode.BackgroundColor);
+                    EmitNode(writer, colorNode.InnerNode);
+                    break;
+
+                case SizePluginNode sizeNode:
+                    writer.Write((byte)0x08);
+                    WriteLengthAndString(writer, sizeNode.Size);
+                    EmitNode(writer, sizeNode.InnerNode);
+                    break;
+
+                case TextNode textNode:
+                    writer.Write((byte)0x02);
+                    WriteLengthAndString(writer, textNode.Text);
+                    writer.Write((byte)0x03);
+                    break;
             }
         }
 

@@ -10,6 +10,6 @@ namespace WikiCompiler.AST
     public class AlignNode : IAstNode
     {
         public AlignType Align { get; set; }
-        public string Text { get; set; } = string.Empty;
+        public IAstNode InnerNode { get; set; } = null!;
     }
 }
