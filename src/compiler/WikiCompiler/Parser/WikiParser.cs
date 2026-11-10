@@ -13,6 +13,7 @@ namespace WikiCompiler.Parser
                 if (string.IsNullOrWhiteSpace(line)) continue;
                 string trimmed = line.Trim();
 
+                // 1. 行頭の配置指定（AlignNode）を判定（左端固定）
                 AlignType? alignType = null;
                 if (trimmed.StartsWith("CENTER:", StringComparison.OrdinalIgnoreCase))
                 {
@@ -49,9 +50,6 @@ namespace WikiCompiler.Parser
             return nodes;
         }
 
-        /// <summary>
-        /// プラグインの多重入れ子を再帰的にパースする
-        /// </summary>
         private static IAstNode ParseInlineRecursive(string input)
         {
             input = input.Trim();
@@ -74,7 +72,10 @@ namespace WikiCompiler.Parser
 
                             for (int j = contentStart; j < input.Length; j++)
                             {
-                                if (input[j] == '{') braceDepth++;
+                                if (input[j] == '{')
+                                {
+                                    braceDepth++;
+                                }
                                 else if (input[j] == '}')
                                 {
                                     braceDepth--;
@@ -86,7 +87,7 @@ namespace WikiCompiler.Parser
                                 }
                             }
 
-                            if (contentEnd != -1)
+                            if (contentEnd != -1 && contentEnd + 1 < input.Length && input[contentEnd + 1] == ';')
                             {
                                 string innerContent = input[contentStart..contentEnd];
                                 IAstNode nestedNode = ParseInlineRecursive(innerContent);
@@ -97,7 +98,7 @@ namespace WikiCompiler.Parser
                                     string bgColor = string.Empty;
                                     if (argsPart.Contains(','))
                                     {
-                                        string[]? parts = argsPart.Split([','], 2);
+                                        var parts = argsPart.Split([','], 2);
                                         color = parts[0].Trim();
                                         bgColor = parts[1].Trim();
                                     }
