@@ -16,6 +16,37 @@ namespace WikiCompiler.Parser
                 if (string.IsNullOrWhiteSpace(line)) continue;
                 string trimmed = line.Trim();
 
+                if (trimmed.StartsWith("CENTER:", StringComparison.OrdinalIgnoreCase))
+                {
+                    string textContent = trimmed["CENTER:".Length..].Trim();
+                    nodes.Add(new AlignNode
+                    {
+                        Align = AlignType.Center,
+                        Text = textContent
+                    });
+                    continue;
+                }
+                else if (trimmed.StartsWith("RIGHT:", StringComparison.OrdinalIgnoreCase))
+                {
+                    string textContent = trimmed["RIGHT:".Length..].Trim();
+                    nodes.Add(new AlignNode
+                    {
+                        Align = AlignType.Right,
+                        Text = textContent
+                    });
+                    continue;
+                }
+                else if (trimmed.StartsWith("LEFT:", StringComparison.OrdinalIgnoreCase))
+                {
+                    string textContent = trimmed["LEFT:".Length..].Trim();
+                    nodes.Add(new AlignNode
+                    {
+                        Align = AlignType.Left,
+                        Text = textContent
+                    });
+                    continue;
+                }
+
                 var match = PluginRegex.Match(trimmed);
                 if (match.Success)
                 {
