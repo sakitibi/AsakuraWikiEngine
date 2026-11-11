@@ -1,9 +1,13 @@
+using System.Text.RegularExpressions;
 using WikiCompiler.AST;
 
 namespace WikiCompiler.Parser
 {
-    public class WikiParser
+    public partial class WikiParser
     {
+        [GeneratedRegex(@"\[#([a-zA-Z0-9_-]+)\]\s*$")]
+        private static partial Regex AnchorRegex();
+
         public List<IAstNode> Parse(string[] lines)
         {
             List<IAstNode> nodes = [];
@@ -13,7 +17,31 @@ namespace WikiCompiler.Parser
                 if (string.IsNullOrWhiteSpace(line)) continue;
                 string trimmed = line.Trim();
 
-                // 1. 行頭の配置指定（AlignNode）を判定（左端固定）
+                int headingLevel = 0;
+                if (trimmed.StartsWith("***", StringComparison.Ordinal))
+                {
+                    headingLevel = 3;
+                    trimmed = trimmed[3..].Trim();
+                }
+                else if (trimmed.StartsWith("**", StringComparison.Ordinal))
+                {
+                    headingLevel = 2;
+                    trimmed = trimmed[2..].Trim();
+                }
+                else if (trimmed.Length > 0 && trimmed[0] == '*')
+                {
+                    headingLevel = 1;
+                    trimmed = trimmed[1..].Trim();
+                }
+
+                string anchorName = string.Empty;
+                var anchorMatch = AnchorRegex().Match(trimmed);
+                if (anchorMatch.Success)
+                {
+                    anchorName = anchorMatch.Groups[1].Value;
+                    trimmed = trimmed[..anchorMatch.Index].Trim();
+                }
+
                 AlignType? alignType = null;
                 if (trimmed.StartsWith("CENTER:", StringComparison.OrdinalIgnoreCase))
                 {
@@ -33,17 +61,28 @@ namespace WikiCompiler.Parser
 
                 IAstNode innerNode = ParseInlineRecursive(trimmed);
 
+                IAstNode finalNode = innerNode;
                 if (alignType.HasValue)
                 {
-                    nodes.Add(new AlignNode
+                    finalNode = new AlignNode
                     {
                         Align = alignType.Value,
-                        InnerNode = innerNode
+                        InnerNode = finalNode
+                    };
+                }
+
+                if (headingLevel > 0)
+                {
+                    nodes.Add(new HeadingNode
+                    {
+                        Level = headingLevel,
+                        Anchor = anchorName,
+                        InnerNode = finalNode
                     });
                 }
                 else
                 {
-                    nodes.Add(innerNode);
+                    nodes.Add(finalNode);
                 }
             }
 
@@ -72,10 +111,7 @@ namespace WikiCompiler.Parser
 
                             for (int j = contentStart; j < input.Length; j++)
                             {
-                                if (input[j] == '{')
-                                {
-                                    braceDepth++;
-                                }
+                                if (input[j] == '{') braceDepth++;
                                 else if (input[j] == '}')
                                 {
                                     braceDepth--;

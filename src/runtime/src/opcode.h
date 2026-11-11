@@ -8,5 +8,8 @@ enum class OpCode : uint8_t {
     RightAlign    = 0x05,
     LeftAlign     = 0x06,
     ColorText     = 0x07,
-    SizeText      = 0x08
+    SizeText      = 0x08,
+    Heading1      = 0x09,
+    Heading2      = 0x0A,
+    Heading3      = 0x0B
 };

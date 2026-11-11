@@ -19,4 +19,11 @@ namespace WikiCompiler.AST
         public string Size { get; set; } = string.Empty;
         public IAstNode InnerNode { get; set; } = null!;
     }
+
+    public class HeadingNode : IAstNode
+    {
+        public int Level { get; set; }
+        public string Anchor { get; set; } = string.Empty;
+        public IAstNode InnerNode { get; set; } = null!;
+    }
 }

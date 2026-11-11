@@ -66,6 +66,36 @@ std::string WikiVM::render_node(const uint8_t* data, size_t size, size_t& offset
             ss << "<span style=\"font-size: " << sizeVal << "px;\">" << innerHtml << "</span>";
             return ss.str();
         }
+        case OpCode::Heading1: {
+            std::string anchor = read_string(data, offset);
+            std::string innerHtml = render_node(data, size, offset);
+            if (!anchor.empty()) {
+                ss << "<a href=\"#" << anchor << "\"><h1>" << innerHtml << "</h1></a>\n";
+            } else {
+                ss << "<h1>" << innerHtml << "</h1>\n";
+            }
+            return ss.str();
+        }
+        case OpCode::Heading2: {
+            std::string anchor = read_string(data, offset);
+            std::string innerHtml = render_node(data, size, offset);
+            if (!anchor.empty()) {
+                ss << "<a href=\"#" << anchor << "\"><h2>" << innerHtml << "</h2></a>\n";
+            } else {
+                ss << "<h2>" << innerHtml << "</h2>\n";
+            }
+            return ss.str();
+        }
+        case OpCode::Heading3: {
+            std::string anchor = read_string(data, offset);
+            std::string innerHtml = render_node(data, size, offset);
+            if (!anchor.empty()) {
+                ss << "<a href=\"#" << anchor << "\"><h3>" << innerHtml << "</h3></a>\n";
+            } else {
+                ss << "<h3>" << innerHtml << "</h3>\n";
+            }
+            return ss.str();
+        }
         default:
             return "";
     }

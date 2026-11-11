@@ -19,6 +19,12 @@ namespace WikiCompiler.CodeGen
         {
             switch (node)
             {
+                case HeadingNode headingNode:
+                    writer.Write(GetOpCodeForHeading(headingNode.Level));
+                    WriteLengthAndString(writer, headingNode.Anchor);
+                    EmitNode(writer, headingNode.InnerNode);
+                    break;
+                
                 case AlignNode alignNode:
                     writer.Write(GetOpCodeForAlign(alignNode.Align));
                     EmitNode(writer, alignNode.InnerNode);
@@ -49,15 +55,21 @@ namespace WikiCompiler.CodeGen
         {
             text ??= "";
             byte[] utf8Bytes = Encoding.UTF8.GetBytes(text);
-            
             if (utf8Bytes.Length > 255)
             {
                 throw new InvalidOperationException("One line is too long (max 255 bytes in UTF-8).");
             }
-
             writer.Write((byte)utf8Bytes.Length);
             writer.Write(utf8Bytes);
         }
+
+        private static byte GetOpCodeForHeading(int level) => level switch
+        {
+            1 => 0x09,
+            2 => 0x0A,
+            3 => 0x0B,
+            _ => 0x09
+        };
 
         private static byte GetOpCodeForAlign(AlignType align) => align switch
         {
