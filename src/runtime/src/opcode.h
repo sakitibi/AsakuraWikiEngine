@@ -11,5 +11,6 @@ enum class OpCode : uint8_t {
     SizeText      = 0x08,
     Heading1      = 0x09,
     Heading2      = 0x0A,
-    Heading3      = 0x0B
+    Heading3      = 0x0B,
+    Accordion     = 0x0C
 };

@@ -4,18 +4,18 @@
 #include <string>
 #include <sstream>
 
-std::string WikiVM::render(const uint8_t* data, size_t size) {
+std::string WikiVM::render(const std::string design_color, const uint8_t* data, size_t size) {
     std::ostringstream html;
     size_t offset = 0;
 
     while (offset < size) {
-        html << render_node(data, size, offset);
+        html << render_node(design_color, data, size, offset);
     }
 
     return html.str();
 }
 
-std::string WikiVM::render_node(const uint8_t* data, size_t size, size_t& offset) {
+std::string WikiVM::render_node(const std::string design_color, const uint8_t* data, size_t size, size_t& offset) {
     if (offset >= size) return "";
 
     OpCode op = static_cast<OpCode>(data[offset++]);
@@ -28,17 +28,17 @@ std::string WikiVM::render_node(const uint8_t* data, size_t size, size_t& offset
             return text;
         }
         case OpCode::CenterAlign: {
-            std::string innerHtml = render_node(data, size, offset);
+            std::string innerHtml = render_node(design_color, data, size, offset);
             ss << "<div style=\"text-align: center;\">" << innerHtml << "</div>\n";
             return ss.str();
         }
         case OpCode::RightAlign: {
-            std::string innerHtml = render_node(data, size, offset);
+            std::string innerHtml = render_node(design_color, data, size, offset);
             ss << "<div style=\"text-align: right;\">" << innerHtml << "</div>\n";
             return ss.str();
         }
         case OpCode::LeftAlign: {
-            std::string innerHtml = render_node(data, size, offset);
+            std::string innerHtml = render_node(design_color, data, size, offset);
             ss << "<div style=\"text-align: left;\">" << innerHtml << "</div>\n";
             return ss.str();
         }
@@ -46,7 +46,7 @@ std::string WikiVM::render_node(const uint8_t* data, size_t size, size_t& offset
             std::string color = read_string(data, offset);
             std::string bgColor = read_string(data, offset);
             
-            std::string innerHtml = render_node(data, size, offset);
+            std::string innerHtml = render_node(design_color, data, size, offset);
 
             ss << "<span style=\"";
             if (!color.empty()) {
@@ -61,39 +61,72 @@ std::string WikiVM::render_node(const uint8_t* data, size_t size, size_t& offset
         case OpCode::SizeText: {
             std::string sizeVal = read_string(data, offset);
             
-            std::string innerHtml = render_node(data, size, offset);
+            std::string innerHtml = render_node(design_color, data, size, offset);
 
             ss << "<span style=\"font-size: " << sizeVal << "px;\">" << innerHtml << "</span>";
             return ss.str();
         }
         case OpCode::Heading1: {
             std::string anchor = read_string(data, offset);
-            std::string innerHtml = render_node(data, size, offset);
+            std::string innerHtml = render_node(design_color, data, size, offset);
             if (!anchor.empty()) {
-                ss << "<a href=\"#" << anchor << "\"><h1>" << innerHtml << "</h1></a>\n";
+                ss << "<a href=\"#" << anchor << "\"><h2 class=\"header_" << design_color << "\">" << innerHtml << "</h2></a>\n";
             } else {
-                ss << "<h1>" << innerHtml << "</h1>\n";
+                ss << "<h2 class=\"header_" << design_color << "\">" << innerHtml << "</h2>\n";
             }
             return ss.str();
         }
         case OpCode::Heading2: {
             std::string anchor = read_string(data, offset);
-            std::string innerHtml = render_node(data, size, offset);
+            std::string innerHtml = render_node(design_color, data, size, offset);
             if (!anchor.empty()) {
-                ss << "<a href=\"#" << anchor << "\"><h2>" << innerHtml << "</h2></a>\n";
+                ss << "<a href=\"#" << anchor << "\"><h3 class=\"header_" << design_color << "\">" << innerHtml << "</h3></a>\n";
             } else {
-                ss << "<h2>" << innerHtml << "</h2>\n";
+                ss << "<h3 class=\"header_" << design_color << "\">" << innerHtml << "</h3>\n";
             }
             return ss.str();
         }
         case OpCode::Heading3: {
             std::string anchor = read_string(data, offset);
-            std::string innerHtml = render_node(data, size, offset);
+            std::string innerHtml = render_node(design_color, data, size, offset);
             if (!anchor.empty()) {
-                ss << "<a href=\"#" << anchor << "\"><h3>" << innerHtml << "</h3></a>\n";
+                ss << "<a href=\"#" << anchor << "\"><h4 class=\"header_" << design_color << "\">" << innerHtml << "</h4></a>\n";
             } else {
-                ss << "<h3>" << innerHtml << "</h3>\n";
+                ss << "<h4 class=\"header_" << design_color << "\">" << innerHtml << "</h4>\n";
             }
+            return ss.str();
+        }
+        case OpCode::Accordion: {
+            uint8_t headingLevel = data[offset++];
+            bool isOpen = (data[offset++] != 0);
+            
+            // タイトル部分のレンダリング
+            std::string titleHtml = render_node(design_color, data, size, offset);
+
+            // 子要素のレンダリング
+            uint8_t count = data[offset++];
+            std::ostringstream innerHtml;
+            for (uint8_t i = 0; i < count; ++i) {
+                innerHtml << render_node(design_color, data, size, offset);
+            }
+
+            int hNum = 2;
+            if (headingLevel >= 1 && headingLevel <= 3) {
+                hNum = headingLevel + 1;
+            }
+
+            std::string current_icon = isOpen ? open_icon : close_icon;
+
+            ss << "<div class=\"accordion-container\" data-state=\"" << (isOpen ? "open" : "close") << "\">\n"
+               << "  <h" << hNum << " class=\"accordion-header header_" << design_color << "\">\n"
+               << "    <svg aria-hidden=\"true\" focusable=\"false\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 448 512\" style=\"width: 1em; height: 1em;\">" << current_icon << "</svg>" << titleHtml << "\n"
+               << "  </h" << hNum << ">\n"
+               << "  <div class=\"accordion-content \">\n"
+               << "    <div class=\"accordion-content-inner\">\n"
+               << innerHtml.str()
+               << "    </div>\n"
+               << "  </div>\n"
+               << "</div>\n";
             return ss.str();
         }
         default:

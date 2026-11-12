@@ -43,6 +43,19 @@ namespace WikiCompiler.CodeGen
                     EmitNode(writer, sizeNode.InnerNode);
                     break;
 
+                case AccordionNode accordionNode:
+                    writer.Write((byte)0x0C);
+                    writer.Write((byte)accordionNode.BraceLevel);
+                    writer.Write((byte)accordionNode.HeadingLevel);
+                    writer.Write((byte)(accordionNode.IsOpen ? 1 : 0));
+                    EmitNode(writer, accordionNode.TitleNode);
+                    writer.Write((byte)accordionNode.Children.Count);
+                    foreach (var child in accordionNode.Children)
+                    {
+                        EmitNode(writer, child);
+                    }
+                    break;
+
                 case TextNode textNode:
                     writer.Write((byte)0x02);
                     WriteLengthAndString(writer, textNode.Text);

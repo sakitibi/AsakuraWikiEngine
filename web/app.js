@@ -21,7 +21,7 @@ Module.onRuntimeInitialized = () => {
 
         Module.HEAPU8.set(byteArray, bufferPtr);
 
-        const htmlPtr = Module._render_wiki(bufferPtr, byteArray.length);
+        const htmlPtr = Module._render_wiki("emerald", bufferPtr, byteArray.length);
 
         const renderedHtml = Module.UTF8ToString(htmlPtr);
 

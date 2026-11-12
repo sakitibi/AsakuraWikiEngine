@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using WikiCompiler.AST;
+using WikiCompiler.Parser.Plugins;
 
 namespace WikiCompiler.Parser
 {
@@ -10,86 +11,118 @@ namespace WikiCompiler.Parser
 
         public List<IAstNode> Parse(string[] lines)
         {
+            int index = 0;
+            return ParseBlock(lines, ref index, 0);
+        }
+
+        internal static List<IAstNode> ParseBlock(string[] lines, ref int index, int targetBraceLevel)
+        {
             List<IAstNode> nodes = [];
 
-            foreach (string line in lines)
+            while (index < lines.Length)
             {
-                if (string.IsNullOrWhiteSpace(line)) continue;
+                string line = lines[index];
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    index++;
+                    continue;
+                }
                 string trimmed = line.Trim();
 
-                int headingLevel = 0;
-                if (trimmed.StartsWith("***", StringComparison.Ordinal))
+                // アコーディオンの終了判定
+                if (targetBraceLevel > 0)
                 {
-                    headingLevel = 3;
-                    trimmed = trimmed[3..].Trim();
-                }
-                else if (trimmed.StartsWith("**", StringComparison.Ordinal))
-                {
-                    headingLevel = 2;
-                    trimmed = trimmed[2..].Trim();
-                }
-                else if (trimmed.Length > 0 && trimmed[0] == '*')
-                {
-                    headingLevel = 1;
-                    trimmed = trimmed[1..].Trim();
-                }
-
-                string anchorName = string.Empty;
-                var anchorMatch = AnchorRegex().Match(trimmed);
-                if (anchorMatch.Success)
-                {
-                    anchorName = anchorMatch.Groups[1].Value;
-                    trimmed = trimmed[..anchorMatch.Index].Trim();
-                }
-
-                AlignType? alignType = null;
-                if (trimmed.StartsWith("CENTER:", StringComparison.OrdinalIgnoreCase))
-                {
-                    alignType = AlignType.Center;
-                    trimmed = trimmed["CENTER:".Length..].Trim();
-                }
-                else if (trimmed.StartsWith("RIGHT:", StringComparison.OrdinalIgnoreCase))
-                {
-                    alignType = AlignType.Right;
-                    trimmed = trimmed["RIGHT:".Length..].Trim();
-                }
-                else if (trimmed.StartsWith("LEFT:", StringComparison.OrdinalIgnoreCase))
-                {
-                    alignType = AlignType.Left;
-                    trimmed = trimmed["LEFT:".Length..].Trim();
-                }
-
-                IAstNode innerNode = ParseInlineRecursive(trimmed);
-
-                IAstNode finalNode = innerNode;
-                if (alignType.HasValue)
-                {
-                    finalNode = new AlignNode
+                    string closingBraces = new('}', targetBraceLevel);
+                    if (trimmed.StartsWith(closingBraces, StringComparison.Ordinal))
                     {
-                        Align = alignType.Value,
-                        InnerNode = finalNode
-                    };
+                        index++;
+                        break;
+                    }
                 }
 
-                if (headingLevel > 0)
+                if (Accordion.TryParseAccordion(lines, ref index, targetBraceLevel, out var accordionNode))
                 {
-                    nodes.Add(new HeadingNode
-                    {
-                        Level = headingLevel,
-                        Anchor = anchorName,
-                        InnerNode = finalNode
-                    });
+                    nodes.Add(accordionNode);
+                    continue;
                 }
-                else
-                {
-                    nodes.Add(finalNode);
-                }
+
+                nodes.Add(ParseLine(trimmed));
+                index++;
             }
 
             return nodes;
         }
 
-        private static IAstNode ParseInlineRecursive(string input)
+        private static IAstNode ParseLine(string trimmed)
+        {
+            int headingLevel = 0;
+            if (trimmed.StartsWith("***", StringComparison.Ordinal))
+            {
+                headingLevel = 3;
+                trimmed = trimmed[3..].Trim();
+            }
+            else if (trimmed.StartsWith("**", StringComparison.Ordinal))
+            {
+                headingLevel = 2;
+                trimmed = trimmed[2..].Trim();
+            }
+            else if (trimmed.Length > 0 && trimmed[0] == '*')
+            {
+                headingLevel = 1;
+                trimmed = trimmed[1..].Trim();
+            }
+
+            string anchorName = string.Empty;
+            var anchorMatch = AnchorRegex().Match(trimmed);
+            if (anchorMatch.Success)
+            {
+                anchorName = anchorMatch.Groups[1].Value;
+                trimmed = trimmed[..anchorMatch.Index].Trim();
+            }
+
+            AlignType? alignType = null;
+            if (trimmed.StartsWith("CENTER:", StringComparison.OrdinalIgnoreCase))
+            {
+                alignType = AlignType.Center;
+                trimmed = trimmed["CENTER:".Length..].Trim();
+            }
+            else if (trimmed.StartsWith("RIGHT:", StringComparison.OrdinalIgnoreCase))
+            {
+                alignType = AlignType.Right;
+                trimmed = trimmed["RIGHT:".Length..].Trim();
+            }
+            else if (trimmed.StartsWith("LEFT:", StringComparison.OrdinalIgnoreCase))
+            {
+                alignType = AlignType.Left;
+                trimmed = trimmed["LEFT:".Length..].Trim();
+            }
+
+            IAstNode innerNode = ParseInlineRecursive(trimmed);
+
+            IAstNode finalNode = innerNode;
+            if (alignType.HasValue)
+            {
+                finalNode = new AlignNode
+                {
+                    Align = alignType.Value,
+                    InnerNode = finalNode
+                };
+            }
+
+            if (headingLevel > 0)
+            {
+                return new HeadingNode
+                {
+                    Level = headingLevel,
+                    Anchor = anchorName,
+                    InnerNode = finalNode
+                };
+            }
+
+            return finalNode;
+        }
+
+        internal static IAstNode ParseInlineRecursive(string input)
         {
             input = input.Trim();
 
