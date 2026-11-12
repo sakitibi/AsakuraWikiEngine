@@ -69,6 +69,7 @@ std::string WikiVM::render_node(const std::string design_color, const uint8_t* d
         case OpCode::Heading1: {
             std::string anchor = read_string(data, offset);
             std::string innerHtml = render_node(design_color, data, size, offset);
+            expect_end(data, size, offset);
             if (!anchor.empty()) {
                 ss << "<a href=\"#" << anchor << "\"><h2 class=\"header_" << design_color << "\">" << innerHtml << "</h2></a>\n";
             } else {
@@ -79,6 +80,7 @@ std::string WikiVM::render_node(const std::string design_color, const uint8_t* d
         case OpCode::Heading2: {
             std::string anchor = read_string(data, offset);
             std::string innerHtml = render_node(design_color, data, size, offset);
+            expect_end(data, size, offset);
             if (!anchor.empty()) {
                 ss << "<a href=\"#" << anchor << "\"><h3 class=\"header_" << design_color << "\">" << innerHtml << "</h3></a>\n";
             } else {
@@ -89,6 +91,7 @@ std::string WikiVM::render_node(const std::string design_color, const uint8_t* d
         case OpCode::Heading3: {
             std::string anchor = read_string(data, offset);
             std::string innerHtml = render_node(design_color, data, size, offset);
+            expect_end(data, size, offset);
             if (!anchor.empty()) {
                 ss << "<a href=\"#" << anchor << "\"><h4 class=\"header_" << design_color << "\">" << innerHtml << "</h4></a>\n";
             } else {
