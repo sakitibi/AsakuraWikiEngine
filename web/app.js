@@ -8,7 +8,7 @@ Module.onRuntimeInitialized = () => {
         const header = event.target.closest('.accordion-header');
         if (!header) return;
 
-        const container = header.closest('.accordion-container');
+        const container = header.closest('.accordion-content');
         if (!container) return;
 
         if (container.classList.contains('accordion-open')) {
