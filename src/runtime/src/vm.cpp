@@ -86,6 +86,16 @@ std::string WikiVM::render_node(const std::string design_color, const uint8_t* d
             }
             return ss.str();
         }
+        case OpCode::Heading3: {
+            std::string anchor = read_string(data, offset);
+            std::string innerHtml = render_node(design_color, data, size, offset);
+            if (!anchor.empty()) {
+                ss << "<a href=\"#" << anchor << "\"><h4 class=\"header_" << design_color << "\">" << innerHtml << "</h4></a>\n";
+            } else {
+                ss << "<h4 class=\"header_" << design_color << "\">" << innerHtml << "</h4>\n";
+            }
+            return ss.str();
+        }
         case OpCode::Accordion: {
             offset++;
             uint8_t headingLevel = data[offset++];
