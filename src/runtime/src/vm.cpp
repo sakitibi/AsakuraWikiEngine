@@ -97,19 +97,16 @@ std::string WikiVM::render_node(const std::string design_color, const uint8_t* d
             return ss.str();
         }
         case OpCode::Accordion: {
-            uint8_t titleCount = data[offset++];
-            std::ostringstream titleHtml;
-            for (uint8_t i = 0; i < titleCount; ++i) {
-                titleHtml << render_node(design_color, data, size, offset);
-            }
-
+            uint8_t braceLevel = data[offset++];
             uint8_t headingLevel = data[offset++];
-
             bool isOpen = (data[offset++] != 0);
+            
+            std::string titleHtml = render_node(design_color, data, size, offset);
 
-            uint8_t contentCount = data[offset++];
+            // 子要素の数
+            uint8_t count = data[offset++];
             std::ostringstream innerHtml;
-            for (uint8_t i = 0; i < contentCount; ++i) {
+            for (uint8_t i = 0; i < count; ++i) {
                 innerHtml << render_node(design_color, data, size, offset);
             }
 
@@ -123,7 +120,7 @@ std::string WikiVM::render_node(const std::string design_color, const uint8_t* d
 
             ss << "<div class=\"accordion-container " << stateClass << "\">\n"
                << "  <h" << hNum << " class=\"accordion-header header_" << design_color << "\">\n"
-               << "    <svg aria-hidden=\"true\" focusable=\"false\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 448 512\" style=\"width: 1em; height: 1em;\">" << current_icon << "</svg>" << titleHtml.str() << "\n"
+               << "    <svg aria-hidden=\"true\" focusable=\"false\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 448 512\" style=\"width: 1em; height: 1em;\">" << current_icon << "</svg>" << titleHtml << "\n"
                << "  </h" << hNum << ">\n"
                << "  <div class=\"accordion-content \">\n"
                << "    <div class=\"accordion-content-inner\">\n"
