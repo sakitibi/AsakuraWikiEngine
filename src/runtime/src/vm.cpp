@@ -97,13 +97,10 @@ std::string WikiVM::render_node(const std::string design_color, const uint8_t* d
             return ss.str();
         }
         case OpCode::Accordion: {
+            std::string titleText = read_string(data, offset);
             uint8_t headingLevel = data[offset++];
             bool isOpen = (data[offset++] != 0);
-            
-            // タイトル部分のレンダリング
-            std::string titleHtml = render_node(design_color, data, size, offset);
 
-            // 子要素のレンダリング
             uint8_t count = data[offset++];
             std::ostringstream innerHtml;
             for (uint8_t i = 0; i < count; ++i) {
@@ -120,7 +117,7 @@ std::string WikiVM::render_node(const std::string design_color, const uint8_t* d
 
             ss << "<div class=\"accordion-container " << stateClass << "\">\n"
                << "  <h" << hNum << " class=\"accordion-header header_" << design_color << "\">\n"
-               << "    <svg aria-hidden=\"true\" focusable=\"false\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 448 512\" style=\"width: 1em; height: 1em;\">" << current_icon << "</svg>" << titleHtml << "\n"
+               << "    <svg aria-hidden=\"true\" focusable=\"false\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 448 512\" style=\"width: 1em; height: 1em;\">" << current_icon << "</svg>" << titleText << "\n"
                << "  </h" << hNum << ">\n"
                << "  <div class=\"accordion-content \">\n"
                << "    <div class=\"accordion-content-inner\">\n"
