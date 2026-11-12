@@ -97,14 +97,15 @@ std::string WikiVM::render_node(const std::string design_color, const uint8_t* d
             return ss.str();
         }
         case OpCode::Accordion: {
-            uint8_t headingLevel = data[offset++];
-            bool isOpen = (data[offset++] != 0);
-            
             uint8_t titleCount = data[offset++];
             std::ostringstream titleHtml;
             for (uint8_t i = 0; i < titleCount; ++i) {
                 titleHtml << render_node(design_color, data, size, offset);
             }
+
+            uint8_t headingLevel = data[offset++];
+
+            bool isOpen = (data[offset++] != 0);
 
             uint8_t contentCount = data[offset++];
             std::ostringstream innerHtml;
