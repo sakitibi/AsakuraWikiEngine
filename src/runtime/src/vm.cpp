@@ -86,23 +86,12 @@ std::string WikiVM::render_node(const std::string design_color, const uint8_t* d
             }
             return ss.str();
         }
-        case OpCode::Heading3: {
-            std::string anchor = read_string(data, offset);
-            std::string innerHtml = render_node(design_color, data, size, offset);
-            if (!anchor.empty()) {
-                ss << "<a href=\"#" << anchor << "\"><h4 class=\"header_" << design_color << "\">" << innerHtml << "</h4></a>\n";
-            } else {
-                ss << "<h4 class=\"header_" << design_color << "\">" << innerHtml << "</h4>\n";
-            }
-            return ss.str();
-        }
         case OpCode::Accordion: {
             uint8_t headingLevel = data[offset++];
             bool isOpen = (data[offset++] != 0);
             
             std::string titleHtml = render_node(design_color, data, size, offset);
 
-            // 子要素の数
             uint8_t count = data[offset++];
             std::ostringstream innerHtml;
             for (uint8_t i = 0; i < count; ++i) {
@@ -116,13 +105,13 @@ std::string WikiVM::render_node(const std::string design_color, const uint8_t* d
 
             std::string stateClass = isOpen ? "accordion-open" : "accordion-close";
 
-            ss << "<div class=\"accordion-container " << stateClass << "\">\n"
+            ss << "<div class=\"accordion-container\">\n"
                << "  <h" << hNum << " class=\"accordion-header header_" << design_color << "\">\n"
                << "    <svg class=\"accordion-icon icon-open\" aria-hidden=\"true\" focusable=\"false\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 448 512\" style=\"width: 1em; height: 1em;\">" << open_icon << "</svg>\n"
                << "    <svg class=\"accordion-icon icon-close\" aria-hidden=\"true\" focusable=\"false\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 448 512\" style=\"width: 1em; height: 1em;\">" << close_icon << "</svg>\n"
                << "    " << titleHtml << "\n"
                << "  </h" << hNum << ">\n"
-               << "  <div class=\"accordion-content\">\n"
+               << "  <div class=\"accordion-content" << stateClass << "\">\n"
                << "    <div class=\"accordion-content-inner\">\n"
                << innerHtml.str()
                << "    </div>\n"
