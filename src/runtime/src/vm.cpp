@@ -97,7 +97,6 @@ std::string WikiVM::render_node(const std::string design_color, const uint8_t* d
             return ss.str();
         }
         case OpCode::Accordion: {
-            uint8_t braceLevel = data[offset++];
             uint8_t headingLevel = data[offset++];
             bool isOpen = (data[offset++] != 0);
             
@@ -115,14 +114,15 @@ std::string WikiVM::render_node(const std::string design_color, const uint8_t* d
                 hNum = headingLevel + 1;
             }
 
-            std::string current_icon = isOpen ? open_icon : close_icon;
             std::string stateClass = isOpen ? "accordion-open" : "accordion-close";
 
-            ss << "<div class=\"accordion-container\">\n"
+            ss << "<div class=\"accordion-container " << stateClass << "\">\n"
                << "  <h" << hNum << " class=\"accordion-header header_" << design_color << "\">\n"
-               << "    <svg aria-hidden=\"true\" focusable=\"false\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 448 512\" style=\"width: 1em; height: 1em;\">" << current_icon << "</svg>" << titleHtml << "\n"
+               << "    <svg class=\"accordion-icon icon-open\" aria-hidden=\"true\" focusable=\"false\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 448 512\" style=\"width: 1em; height: 1em;\">" << open_icon << "</svg>\n"
+               << "    <svg class=\"accordion-icon icon-close\" aria-hidden=\"true\" focusable=\"false\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 448 512\" style=\"width: 1em; height: 1em;\">" << close_icon << "</svg>\n"
+               << "    " << titleHtml << "\n"
                << "  </h" << hNum << ">\n"
-               << "  <div class=\"accordion-content " << stateClass << "\">\n"
+               << "  <div class=\"accordion-content\">\n"
                << "    <div class=\"accordion-content-inner\">\n"
                << innerHtml.str()
                << "    </div>\n"

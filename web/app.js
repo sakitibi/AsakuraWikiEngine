@@ -8,15 +8,16 @@ Module.onRuntimeInitialized = () => {
         const header = event.target.closest('.accordion-header');
         if (!header) return;
 
-        const container = header.closest('.accordion-content');
-        if (!container) return;
+        const container = header.closest('.accordion-container');
+        const content = container.querySelector('.accordion-content');
+        if (!container || !content) return;
 
-        if (container.classList.contains('accordion-open')) {
-            container.classList.remove('accordion-open');
-            container.classList.add('accordion-close');
+        if (content.classList.contains('accordion-open')) {
+            content.classList.remove('accordion-open');
+            content.classList.add('accordion-close');
         } else {
-            container.classList.remove('accordion-close');
-            container.classList.add('accordion-open');
+            content.classList.remove('accordion-close');
+            content.classList.add('accordion-open');
         }
     });
 
